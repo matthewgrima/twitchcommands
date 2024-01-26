@@ -3,17 +3,17 @@ main = "dist/index.mjs"
 
 logpush = true
 workers_dev = false
-account_id = "dc941e8156f4a1336ca08481cb6d4222"
+account_id = "ae21073ba569d28e3fddb8cf9e3f0852"
 
 compatibility_date = "2023-09-29"
 compatibility_flags = []
 
 routes = [
-	{ pattern = "commands.garretcharp.com", custom_domain = true }
+	{ pattern = "twitchcommands.matthewgrima.com", custom_domain = true }
 ]
 
 kv_namespaces = [
-	{ binding = "KV", id = "406ee79c99694dc2942a7d9bf74ec9d1" }
+	{ binding = "KV", id = "af9283071986403bb1026c0112554503" }
 ]
 
 [durable_objects]

@@ -1,4 +1,4 @@
-import { object, string, number, array } from 'zod'
+import { z, object, string, number, array, boolean } from 'zod'
 import { decodeBase64, encodeBase64 } from 'oslo/encoding'
 import { safe } from '../index'
 
@@ -60,9 +60,9 @@ type GetTwitchUserToken = {
 	refresh_token: string
 }
 
-export async function getTwitchToken (input: GetTwitchAppToken): Promise<typeof AppTokenResponse._type>
-export async function getTwitchToken (input: GetTwitchUserToken): Promise<typeof UserTokenResponse._type>
-export async function getTwitchToken (input: GetTwitchAppToken | GetTwitchUserToken): Promise<typeof AppTokenResponse._type | typeof UserTokenResponse._type> {
+export async function getTwitchToken(input: GetTwitchAppToken): Promise<typeof AppTokenResponse._type>
+export async function getTwitchToken(input: GetTwitchUserToken): Promise<typeof UserTokenResponse._type>
+export async function getTwitchToken(input: GetTwitchAppToken | GetTwitchUserToken): Promise<typeof AppTokenResponse._type | typeof UserTokenResponse._type> {
 	const response = await safe(
 		fetch('https://id.twitch.tv/oauth2/token', {
 			method: 'POST',
@@ -270,6 +270,21 @@ type GetTwitchChattersParams = Omit<GetTwitchFollowerParams, 'viewer'>
 export const getTwitchChatters = async ({ env, streamer, moderator }: GetTwitchChattersParams) => {
 	const access_token = await getTwitchUserToken({ env, userId: moderator ?? streamer.id })
 
+	fetch(`https://api.twitch.tv/helix/chat/chatters?broadcaster_id=${streamer.id}&first=1000&moderator_id=${moderator ?? streamer.id}`, {
+		method: 'GET',
+		headers: {
+			'Client-ID': env.TWITCH_CLIENT_ID,
+			Authorization: `Bearer ${access_token}`
+		},
+		cf: {
+			cacheEverything: true,
+			cacheTtlByStatus: { '200-299': 60, '500-599': 10 }
+		}
+	})
+		.then(response => response.text())
+		.then(text => console.log(text))
+		.catch(error => console.error(error));
+
 	const response = await safe(
 		fetch(`https://api.twitch.tv/helix/chat/chatters?broadcaster_id=${streamer.id}&first=1000&moderator_id=${moderator ?? streamer.id}`, {
 			method: 'GET',
@@ -295,4 +310,86 @@ export const getTwitchChatters = async ({ env, streamer, moderator }: GetTwitchC
 	if (!data.success) throw new Error('Failed to get chatters, twitch response error (unable to parse). Response: ' + text)
 
 	return TwitchChattersResponse.parse(data.data)
+}
+
+
+const TwitchSubInfoResponse = object({
+	data: array(object({
+		user_id: string({ required_error: 'id is required' }).min(1, { message: 'id is too short' }),
+		user_login: string({ required_error: 'login is required' }).min(1, { message: 'login is too short' }),
+		user_name: string({ required_error: 'name is required' }).min(1, { message: 'name is too short' }),
+		tier: string({ required_error: 'tier is required' }).min(1, { message: 'tier is too short' }),
+		is_gift: boolean({ required_error: 'is_gift is required' }),
+		broadcaster_id: string(),
+		broadcaster_login: string(),
+		broadcaster_name: string(),
+		gifter_id: string(),
+		gifter_login: string(),
+		gifter_name: string(),
+		plan_name: string()
+	})),
+	total: number({ required_error: 'total is required' }),
+	points: number({ required_error: 'points is required' }),
+	pagination: object({
+		cursor: string()
+	})
+})
+
+type TwitchSubInfoResponseType = z.infer<typeof TwitchSubInfoResponse>;
+
+type GetTwitchSubInfoParams = {
+	env: Bindings
+	streamer: { id: string, login: string }
+	moderator?: string,
+	cursor?: string
+}
+
+export const getSubInfo = async ({ env, streamer, moderator, cursor }: GetTwitchSubInfoParams): Promise<TwitchSubInfoResponseType> => {
+	const access_token = await getTwitchUserToken({ env, userId: moderator ?? streamer.id })
+
+	var url = `https://api.twitch.tv/helix/subscriptions?broadcaster_id=${streamer.id}&first=100&moderator_id=${moderator ?? streamer.id}`;
+	if (cursor != null) {
+		url += `&after=${cursor}`;
+	}
+
+	const response = await safe(
+		fetch(url, {
+			method: 'GET',
+			headers: {
+				'Client-ID': env.TWITCH_CLIENT_ID,
+				Authorization: `Bearer ${access_token}`
+			},
+			cf: {
+				cacheEverything: true,
+				cacheTtlByStatus: { '200-299': 60, '500-599': 10 }
+			}
+		})
+	)
+
+	if (!response.success || response.data.status !== 200) {
+		if (response.success) throw new Error(await response.data.text())
+		else throw response.error
+	}
+
+	const text = await response.data.text()
+	const data = safe(() => JSON.parse(text))
+
+	if (!data.success) throw new Error('Failed to get sub info, twitch response error (unable to parse). Response: ' + text)
+
+	const toReturn = TwitchSubInfoResponse.parse(data.data);
+
+	if (toReturn.data.length < 100) {
+		return toReturn;
+	}
+	else {
+		var nextPage = await getSubInfo({
+			env: env,
+			streamer: streamer,
+			moderator: moderator,
+			cursor: toReturn.pagination.cursor
+		});
+
+		toReturn.data = toReturn.data.concat(nextPage.data);
+		return toReturn;
+	}
 }

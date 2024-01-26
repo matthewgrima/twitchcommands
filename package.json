@@ -11,10 +11,14 @@
   "dependencies": {
     "hono": "^3.10.0",
     "oslo": "^0.14.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4",
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230922.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
     "esbuild": "^0.14.47",
     "wrangler": "^3.15.0"
   },

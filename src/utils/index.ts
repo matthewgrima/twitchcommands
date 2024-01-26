@@ -78,7 +78,7 @@ export const getBaseUrl = (url: string) => {
 	return `${current.protocol}//${current.host}`
 }
 
-export const Twitch_Auth_Scopes = ['moderator:read:followers', 'moderator:read:chatters'] as const
+export const Twitch_Auth_Scopes = ['moderator:read:followers', 'moderator:read:chatters', 'channel:read:subscriptions'] as const
 export const getTwitchAuthLink = (url: string, client_id: string) => {
 	const query = new URLSearchParams({
 		client_id,

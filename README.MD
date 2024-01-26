@@ -1,14 +1,14 @@
-# commands.garretcharp.com
+# twitchcommands.matthewgrima.com
 
 A simple api for chat bot commands on Twitch. (Followage, Random Chatters, maybe more in the future)
 
 ## Usage
 
-Note: All endpoints currently require you login with Twitch as the APIs require moderator level permissions to the channels for the data queried. There are also better explanations of how to use this api with chatbots (nightbot) on the [website](https://commands.garretcharp.com).
+Note: All endpoints currently require you login with Twitch as the APIs require moderator level permissions to the channels for the data queried. There are also better explanations of how to use this api with chatbots (nightbot) on the [website](https://twitchcommands.matthewgrima.com).
 
 ### Followage
 
-`https://commands.garretcharp.com/twitch/followage/{channel}/{user}`
+`https://twitchcommands.matthewgrima.com/twitch/followage/{channel}/{user}`
 
 Returns the followage of {user} in {channel} on Twitch.
 
@@ -29,14 +29,14 @@ Returns the followage of {user} in {channel} on Twitch.
 
 #### Example
 
-`https://commands.garretcharp.com/twitch/followage/itsunsmart/acpixel`
+`https://twitchcommands.matthewgrima.com/twitch/followage/itsunsmart/acpixel`
 
 Returns:
 @acpixel has been following @itsunsmart for 3 years, 1 month, 11 days, 14 hours, 8 minutes, 8 seconds.
 
 ### Random Chatters
 
-`https://commands.garretcharp.com/twitch/chatter/{channel}`
+`https://twitchcommands.matthewgrima.com/twitch/chatter/{channel}`
 
 Returns a random chatter from {channel} on Twitch.
 
@@ -50,7 +50,7 @@ Returns a random chatter from {channel} on Twitch.
 
 #### Example
 
-`https://commands.garretcharp.com/twitch/chatter/itsunsmart`
+`https://twitchcommands.matthewgrima.com/twitch/chatter/itsunsmart`
 
 Returns:
 acpixel
